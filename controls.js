@@ -1,48 +1,57 @@
 class Controls {
-    constructor() {
-        this.forward = false;
-        this.left = false;
-        this.right = false;
-        this.reverse = false;
+  constructor(controlType) {
+    this.forward = false;
+    this.left = false;
+    this.right = false;
+    this.reverse = false;
 
+    switch (controlType) {
+      case "KEY":
         this.#addKeyboardListeners();
+        break;
+      case "DUMMY":
+        this.forward = true;
+        break;
+      default:
+        break;
     }
+  }
 
-    #addKeyboardListeners() {
-        document.onkeydown = (event) => {
-            switch (event.key) {
-                case "ArrowLeft":
-                    this.left = true;
-                    break;
-                case "ArrowRight":
-                    this.right = true;
-                    break;
-                case "ArrowUp":   // fixed case
-                    this.forward = true;
-                    break;
-                case "ArrowDown": // fixed case
-                    this.reverse = true;
-                    break;
-            }
-            // console.table(this); // show state after key press
-        };
+  #addKeyboardListeners() {
+    document.onkeydown = (event) => {
+      switch (event.key) {
+        case "ArrowLeft":
+          this.left = true;
+          break;
+        case "ArrowRight":
+          this.right = true;
+          break;
+        case "ArrowUp": // fixed case
+          this.forward = true;
+          break;
+        case "ArrowDown": // fixed case
+          this.reverse = true;
+          break;
+      }
+      // console.table(this); // show state after key press
+    };
 
-        document.onkeyup = (event) => {
-            switch (event.key) {
-                case "ArrowLeft":
-                    this.left = false;
-                    break;
-                case "ArrowRight":
-                    this.right = false;
-                    break;
-                case "ArrowUp":   // fixed case
-                    this.forward = false;
-                    break;
-                case "ArrowDown": // fixed case
-                    this.reverse = false;
-                    break;
-            }
-            // console.table(this); // show state after key release
-        };
-    }
+    document.onkeyup = (event) => {
+      switch (event.key) {
+        case "ArrowLeft":
+          this.left = false;
+          break;
+        case "ArrowRight":
+          this.right = false;
+          break;
+        case "ArrowUp": // fixed case
+          this.forward = false;
+          break;
+        case "ArrowDown": // fixed case
+          this.reverse = false;
+          break;
+      }
+      // console.table(this); // show state after key release
+    };
+  }
 }

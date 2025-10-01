@@ -1,118 +1,138 @@
 class Car {
-    constructor(x, y, width, height) {
-        this.x = x;
-        this.y = y;
-        this.width = width;
-        this.height = height;
+  constructor(x, y, width, height, controlType, maxSpeed = 3) {
+    this.x = x;
+    this.y = y;
+    this.width = width;
+    this.height = height;
 
-        this.speed = 0;
-        this.acceleration = 0.5;
-        this.maxSpeed = 5;
-        this.friction = 0.05;
+    this.speed = 0;
+    this.acceleration = 0.5;
+    this.maxSpeed = maxSpeed;
+    this.friction = 0.05;
 
-        this.angle = 0;
+    this.angle = 0;
+    this.damaged = false;
 
-        this.sensor = new Sensor(this);
-        this.controls = new Controls();
+    if (controlType != "DUMMY") {
+      this.sensor = new Sensor(this);
+    }
+    this.controls = new Controls(controlType);
+  }
+
+  update(roadBorders, traffic) {
+    if (!this.damaged) {
+      this.#move();
+      this.polygon = this.#createPolygon();
+      this.damaged = this.#assessDamage(roadBorders, traffic);
+    }
+    if (this.sensor) {
+      this.sensor.update(roadBorders, traffic);
+    }
+  }
+
+  #assessDamage(roadBorders, traffic) {
+    for (let i = 0; i < roadBorders.length; i++) {
+      if (polysIntersect(this.polygon, roadBorders[i])) {
+        return true;
+      }
+    }
+    for (let i = 0; i < traffic.length; i++) {
+      if (polysIntersect(this.polygon, traffic[i].polygon)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  #createPolygon() {
+    const points = [];
+    const rad = Math.hypot(this.width, this.height) / 2;
+    const alpha = Math.atan2(this.width, this.height);
+
+    points.push({
+      x: this.x - Math.sin(this.angle - alpha) * rad,
+      y: this.y - Math.cos(this.angle - alpha) * rad,
+    }); // This points toward front-right corner (relative to car’s angle).
+    points.push({
+      x: this.x - Math.sin(this.angle + alpha) * rad,
+      y: this.y - Math.cos(this.angle + alpha) * rad,
+    }); // This points toward front-left corner.
+    points.push({
+      x: this.x - Math.sin(Math.PI + this.angle - alpha) * rad,
+      y: this.y - Math.cos(Math.PI + this.angle - alpha) * rad,
+    }); // Adding π flips direction → this is the back-left corner.
+    points.push({
+      x: this.x - Math.sin(Math.PI + this.angle + alpha) * rad,
+      y: this.y - Math.cos(Math.PI + this.angle + alpha) * rad,
+    }); // This is the back-right corner.
+    return points;
+  }
+
+  //       (front of car)
+  // C1 --------- C2
+  //  |           |
+  //  |   (x,y)   |   <-- center
+  //  |           |
+  // C4 --------- C3
+  //   (rear of car)
+
+  draw(ctx, color) {
+
+    if (this.damaged) {
+      ctx.fillStyle = "gray";
+    } else {
+      ctx.fillStyle = color;
+    }
+    ctx.beginPath();
+    ctx.moveTo(this.polygon[0].x, this.polygon[0].y);
+    for (let i = 1; i < this.polygon.length; i++) {
+      ctx.lineTo(this.polygon[i].x, this.polygon[i].y);
+    }
+    ctx.closePath();
+    ctx.fill();
+
+    if (this.sensor) {
+      this.sensor.draw(ctx);
+    }
+  }
+
+  #move() {
+    if (this.controls.forward) {
+      this.speed += this.acceleration;
+    }
+    if (this.controls.reverse) {
+      this.speed -= this.acceleration;
     }
 
-    update(roadBorders) {
-        this.#move()
-        this.polygon = this.#createPolygon();
-        this.sensor.update(roadBorders);
-
+    if (this.speed > this.maxSpeed) {
+      this.speed = this.maxSpeed;
+    }
+    if (this.speed < -this.maxSpeed / 2) {
+      this.speed = -this.maxSpeed / 2;
     }
 
-
-    #createPolygon() {
-        const points = [];
-        const rad = Math.hypot(this.width, this.height) / 2;
-        const alpha = Math.atan2(this.width, this.height);
-
-        points.push({
-            x: this.x - Math.sin(this.angle - alpha) * rad,
-            y: this.y - Math.cos(this.angle - alpha) * rad
-        }); // This points toward front-right corner (relative to car’s angle).
-        points.push({
-            x: this.x - Math.sin(this.angle + alpha) * rad,
-            y: this.y - Math.cos(this.angle + alpha) * rad
-        }); // This points toward front-left corner.
-        points.push({
-            x: this.x - Math.sin(Math.PI + this.angle - alpha) * rad,
-            y: this.y - Math.cos(Math.PI + this.angle - alpha) * rad
-        });  // Adding π flips direction → this is the back-left corner.
-        points.push({
-            x: this.x - Math.sin(Math.PI + this.angle + alpha) * rad,
-            y: this.y - Math.cos(Math.PI + this.angle + alpha) * rad
-        });  // This is the back-right corner.
-        return points;
+    if (this.speed > 0) {
+      this.speed -= this.friction;
+    }
+    if (this.speed < 0) {
+      this.speed += this.friction;
+    }
+    if (Math.abs(this.speed) < this.friction) {
+      this.speed = 0;
     }
 
+    if (this.speed != 0) {
+      const flip = this.speed > 0 ? 1 : -1;
 
-    //       (front of car)
-    // C1 --------- C2
-    //  |           |
-    //  |   (x,y)   |   <-- center
-    //  |           |
-    // C4 --------- C3
-    //   (rear of car)
-
-
-
-    draw(ctx) {
-        // ctx.fillStyle = "blue";   // choose any color you like
-        ctx.beginPath();
-        ctx.moveTo(this.polygon[0].x, this.polygon[0].y);
-        for (let i = 1; i < this.polygon.length; i++) {
-            ctx.lineTo(this.polygon[i].x, this.polygon[i].y);
-        }
-        ctx.closePath();
-        ctx.fill();
-
-        this.sensor.draw(ctx);
+      if (this.controls.left) {
+        this.angle += 0.03 * flip;
+      }
+      if (this.controls.right) {
+        this.angle -= 0.03 * flip;
+      }
     }
 
-
-
-    #move() {
-        if (this.controls.forward) {
-            this.speed += this.acceleration;
-        }
-        if (this.controls.reverse) {
-            this.speed -= this.acceleration;
-        }
-
-        if (this.speed > this.maxSpeed) {
-            this.speed = this.maxSpeed;
-        }
-        if (this.speed < -this.maxSpeed / 2) {
-            this.speed = -this.maxSpeed / 2;
-        }
-
-        if (this.speed > 0) {
-            this.speed -= this.friction;
-        }
-        if (this.speed < 0) {
-            this.speed += this.friction;
-        }
-        if (Math.abs(this.speed) < this.friction) {
-            this.speed = 0;
-        }
-
-
-        if (this.speed != 0) {
-            const flip = this.speed > 0 ? 1 : -1
-
-            if (this.controls.left) {
-                this.angle += 0.03 * flip;
-            }
-            if (this.controls.right) {
-                this.angle -= 0.03 * flip;
-            }
-        }
-
-
-        this.x -= Math.sin(this.angle) * this.speed;
-        this.y -= Math.cos(this.angle) * this.speed;
-    }
+    this.x -= Math.sin(this.angle) * this.speed;
+    this.y -= Math.cos(this.angle) * this.speed;
+  }
 }
