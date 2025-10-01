@@ -28,26 +28,34 @@ class Car {
         const points = [];
         const rad = Math.hypot(this.width, this.height) / 2;
         const alpha = Math.atan2(this.width, this.height);
-        
+
         points.push({
             x: this.x - Math.sin(this.angle - alpha) * rad,
             y: this.y - Math.cos(this.angle - alpha) * rad
-        });
+        }); // This points toward front-right corner (relative to car’s angle).
         points.push({
             x: this.x - Math.sin(this.angle + alpha) * rad,
             y: this.y - Math.cos(this.angle + alpha) * rad
-        });
+        }); // This points toward front-left corner.
         points.push({
             x: this.x - Math.sin(Math.PI + this.angle - alpha) * rad,
             y: this.y - Math.cos(Math.PI + this.angle - alpha) * rad
-        });
+        });  // Adding π flips direction → this is the back-left corner.
         points.push({
             x: this.x - Math.sin(Math.PI + this.angle + alpha) * rad,
             y: this.y - Math.cos(Math.PI + this.angle + alpha) * rad
-        });
+        });  // This is the back-right corner.
         return points;
     }
 
+
+    //       (front of car)
+    // C1 --------- C2
+    //  |           |
+    //  |   (x,y)   |   <-- center
+    //  |           |
+    // C4 --------- C3
+    //   (rear of car)
 
 
 
