@@ -1,18 +1,31 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <title>self driving car</title>
-    <link rel="stylesheet" href="style.css" />
-  </head>
 
-  <body>
-    <canvas id="myCanvas"></canvas>
+<head>
+    <meta charset="utf-8">
+    <title>Self-driving car - No libraries</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <canvas id="carCanvas"></canvas>
+    <div id="verticalButtons">
+        <button onclick="save()">💾 Save</button>
+        <button onclick="discard()">🗑️ Discard</button>
+        <button onclick="downloadBrain()">⬇️ Download</button>
+        <input type="file" id="uploadBrain" style="display:none" onchange="uploadBrain(event)">
+        <button onclick="document.getElementById('uploadBrain').click()">⬆️ Upload</button>
+    </div>
+    <canvas id="networkCanvas"></canvas>
+
+    <script src="visualizer.js"></script>
     <script src="network.js"></script>
-    <script src="utils.js"></script>
     <script src="sensor.js"></script>
+    <script src="utils.js"></script>
     <script src="road.js"></script>
     <script src="controls.js"></script>
     <script src="car.js"></script>
     <script src="main.js"></script>
-  </body>
+</body>
+
 </html>
