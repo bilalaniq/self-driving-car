@@ -113,5 +113,3 @@ You can also **export** and **import** the brain:
 ## 📜 License
 
 MIT License © 2025 NULLSECT
-
-```
