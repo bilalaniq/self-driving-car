@@ -1,12 +1,12 @@
 class Car {
-  constructor(x, y, width, height, controlType, maxSpeed = 3) {
+  constructor(x, y, width, height, controlType, maxSpeed = 3, colour = "blue") {
     this.x = x;
     this.y = y;
     this.width = width;
     this.height = height;
 
     this.speed = 0;
-    this.acceleration = 0.5;
+    this.acceleration = 0.2;
     this.maxSpeed = maxSpeed;
     this.friction = 0.05;
 
@@ -23,6 +23,19 @@ class Car {
 
     this.image = new Image();
     this.image.src = "car.png";
+
+    this.mask = document.createElement("canvas");
+    this.mask.width = width;
+    this.mask.height = height;
+
+    const maskCtx = this.mask.getContext("2d");
+    this.image.onload = () => {
+      maskCtx.fillStyle = colour;
+      maskCtx.rect(0, 0, this.width, this.height);
+      maskCtx.fill();
+      maskCtx.globalCompositeOperation = "destination-atop";
+      maskCtx.drawImage(this.image, 0, 0, this.width, this.height);
+    };
   }
 
   update(roadBorders, traffic) {
@@ -33,7 +46,9 @@ class Car {
     }
     if (this.sensor) {
       this.sensor.update(roadBorders, traffic);
-      const offsets = this.sensor.readings.map((s) => (s == null ? 0 : 1 - s.offset));  // i am doing 1 - s.offset to invert the value, so that closer objects have higher values
+      const offsets = this.sensor.readings.map((s) =>
+        s == null ? 0 : 1 - s.offset
+      ); // i am doing 1 - s.offset to invert the value, so that closer objects have higher values
       const outputs = NeuralNetwork.feedForward(offsets, this.brain);
 
       if (this.useBrain) {
@@ -91,8 +106,7 @@ class Car {
   // C4 --------- C3
   //   (rear of car)
 
-  draw(ctx, color, drawSensor = false) {
-
+  draw(ctx, drawSensor = false) {
     // if (this.damaged) {
     //   ctx.fillStyle = "gray";
     // } else {
@@ -106,9 +120,25 @@ class Car {
     // ctx.closePath();
     // ctx.fill();
 
+    if (this.sensor && drawSensor) {
+      this.sensor.draw(ctx);
+    }
+
     ctx.save();
     ctx.translate(this.x, this.y);
     ctx.rotate(-this.angle);
+    if (!this.damaged) {
+      ctx.drawImage(
+        this.mask,
+        -this.width / 2,
+        -this.height / 2,
+        this.width,
+        this.height
+      );
+    }
+
+    ctx.globalCompositeOperation = "multiply";
+
     ctx.drawImage(
       this.image,
       -this.width / 2,
@@ -117,10 +147,6 @@ class Car {
       this.height
     );
     ctx.restore();
-
-    if (this.sensor && drawSensor) {
-      this.sensor.draw(ctx);
-    }
   }
 
   #move() {

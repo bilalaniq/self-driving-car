@@ -39,7 +39,6 @@ function polysIntersect(poly1, poly2) {
   return false;
 }
 
-
 function getRGBA(value) {
   const alpha = Math.abs(value);
   const R = value < 0 ? 0 : 255;
@@ -48,3 +47,7 @@ function getRGBA(value) {
   return "rgba(" + R + "," + G + "," + B + "," + alpha + ")";
 }
 
+function getRandomColor() {
+  const hue = 290 + Math.random() * 260;
+  return "hsl(" + hue + ", 100%, 60%)";
+}
